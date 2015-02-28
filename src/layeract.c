@@ -95,15 +95,13 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 int main(int argc, char *argv[]) {
   struct arguments arguments;
-  int* nexamples;
-  int* nunits;
-  int* nticks;
+  int nexamples;
+  int nunits;
+  int nticks;
+  int gn;
   int tickstart=0;
-  double* lensoutf;
-  nexamples = malloc(sizeof(int));
-  nunits = malloc(sizeof(int));
-  nticks = malloc(sizeof(int));
-  lensoutf = malloc(sizeof(float));
+  double unitact;
+  double unittarg;
 
   /* Set argument defaults */
   arguments.index = 0;
@@ -113,49 +111,56 @@ int main(int argc, char *argv[]) {
   /* Where the magic happens */
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
+  char *netfilename= arguments.args[0];
+  char *layername = arguments.args[1];
+  char *examplefilename = arguments.args[2];
+  char *weightfilename = arguments.args[3];
+
   if (startLens(argv[0], 1)) {
     fprintf(stderr, "Lens Failed\n");
     exit(1);
   }
 
   /* Source the network file */
-  lens("source %s", arguments.args[0]);
+  lens("source %s", netfilename);
   /* Load the weights */
-  lens("loadWeights %s", arguments.args[3]);
+  lens("loadWeights %s", weightfilename);
   /* Load the examples */
-  lens("loadExamples %s -set testset -exmode ORDERED",arguments.args[2]);
+  lens("loadExamples %s -set testset -exmode ORDERED", examplefilename);
   lens("useTestingSet testset");
-  lens("getObj testset.numExamples");
-  *nexamples = atoi(Tcl_GetStringResult(Interp));
-  /* Determine number of units in the layer to tbe written */
-  lens("getObj %s.numUnits", arguments.args[1]);
-  *nunits = atoi(Tcl_GetStringResult(Interp));
+  /* Number of examples */
+  nexamples=Root->set[0]->numExamples;
+  /* Figure out the group number of associated with layer name */
+  lens("path -group %s", layername);
+  sscanf(Tcl_GetStringResult(Interp), "group(%d)", &gn);
+  /* Number of units in layer */
+  nunits = Net->group[8]->numUnits;
+
   if (arguments.verbose) {
-    fprintf(stderr,"Network:        %s\n",arguments.args[0]);
-    fprintf(stderr,"Layer    (%d)  %s\n",*nunits,arguments.args[1]);
-    fprintf(stderr,"Examples (%d): %s\n",*nexamples,arguments.args[2]);
-    fprintf(stderr,"Weights:        %s\n",arguments.args[3]);
+    fprintf(stderr,"Network:        %s\n", netfilename);
+    fprintf(stderr,"Layer    (%d):  %s(%d)\n",nunits,layername,gn);
+    fprintf(stderr,"Examples (%d): %s\n", nexamples, examplefilename);
+    fprintf(stderr,"Weights:        %s\n",weightfilename);
     fprintf(stderr,"-t:        %d\n",arguments.tick);
   }
 
- // for (int i=0; i<*nexamples; i++) {
-  for (int i=0; i<*nexamples; i++) {
-    if(arguments.index==1) {fprintf(stdout,"%d ",i);}
-    lens("doExample %d -set testset -test", i);
-    lens("getObj ticksOnExample");
-    *nticks = atoi(Tcl_GetStringResult(Interp));
-    if (*nticks>1){tickstart=1;}
+  for (int iex=0; iex<nexamples; iex++) {
+    if(arguments.index==1) {fprintf(stdout,"%d ",iex);}
+    lens("doExample %d -set testset -test", iex);
+    nticks = Net->ticksOnExample;
+    if (nticks>1){tickstart=1;}
     if (arguments.tick>0) {
       tickstart=arguments.tick;
-      *nticks = tickstart+1;
+      nticks = tickstart+1;
     }
-    if(arguments.verbose) {fprintf(stderr,"Ticks:       %d\n",*nticks);}
-    for (int k=tickstart; k<*nticks; k++) {
-      if(arguments.index==1) {fprintf(stdout,"%d ",k);}
-      for (int j=0; j<*nunits; j++) {
-        lens("getObj %s.unit(%d).outputHistory(%d)", arguments.args[1],j,k);
-        *lensoutf = atof(Tcl_GetStringResult(Interp));
-        fprintf(stdout,"%.3f ",*lensoutf);
+    if(arguments.verbose) {fprintf(stderr,"Ticks: %d\n",nticks);}
+
+    for (int itick=tickstart; itick<nticks; itick++) {
+      if(arguments.index==1) {fprintf(stdout,"%d ",itick);}
+      for (int i=0;i<nunits; i++) {
+        unittarg = Net->group[gn]->unit[i].targetHistory[itick];
+        unitact = Net->group[gn]->unit[i].outputHistory[itick];
+        fprintf(stdout,"%.3f ",unitact);
       }
       fprintf(stdout,"\n");
     }

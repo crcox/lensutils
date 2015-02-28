@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr,"Weights:        %s\n",weightfilename);
     fprintf(stderr,"-t:        %d\n",arguments.tick);
   }
-
+/*
   for (int iex=0; iex<nexamples; iex++) {
     if(arguments.index==1) {fprintf(stdout,"%d ",iex);}
     lens("doExample %d -set testset -test", iex);
@@ -167,5 +167,6 @@ int main(int argc, char *argv[]) {
       fprintf(stdout,"\n");
     }
   }
+  */
   return 0;
 }
