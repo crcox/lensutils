@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 #include <lens.h>
 #include "util.h"
@@ -109,6 +108,7 @@ int main(int argc, char *argv[]) {
   arguments.index = 0;
   arguments.verbose = 0;
   arguments.tick = -1;
+  arguments.tick = -1;
 
   /* Where the magic happens */
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
@@ -149,9 +149,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* Iterator variables */
-  int i;
   int iex;
-  int jex;
   int itick;
   for (iex=0; iex<nexamples; iex++) {
     // We will assume for now that the last event is where targets are //
@@ -173,31 +171,14 @@ int main(int argc, char *argv[]) {
     for (itick=tickstart; itick<nticks; itick++) {
       // Skip over ticks belonging to events without targets
       if (Net->eventHistory[itick]!=(nevents-1)) {continue;}
-      // Print tick index if asked for
-      //if(arguments.index==1) {fprintf(stdout,"%d ",itick);}
 
-      // What we want to know is: are the activations for this example closer
-      // to the intended target than the target activation associated with any
-      // other esample?
-      minotherdist = 9999;
-      selfdist = 0;
-      for (jex=0; jex<nexamples; jex++) {
-        otherdist = 0;
-        for (i=0;i<nunits; i++) {
-          unittarg = Root->set[0]->example[jex]->event[nevents-1].target->val[i];
-          unitact = Net->group[gn]->unit[i].outputHistory[itick];
-          dist = pow(unitact-unittarg, 2);
-          if (iex==jex) {
-            selfdist = selfdist + dist;
-          } else {
-            otherdist = otherdist + dist;
-          }
-        }
-        if (iex!=jex && otherdist < minotherdist) {
-          minotherdist = otherdist;
-       }
+      switch(arguments.method){
+        case "unitwise":
+          acc = Acc_Unitwise(nunits);
+        case "patternwise":
+          acc = Acc_Patternwise(nunits,nexamples,iex);
       }
-      if (selfdist < minotherdist) {acc = 1;}
+
       fprintf(stdout,"%d ",acc);
     }
     fprintf(stdout,"\n");
