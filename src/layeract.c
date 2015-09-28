@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <lens.h>
-#include "util.h"
-#include <network.h>
-#include <tcl.h>
 #include <argp.h>
+#include <tcl.h>
+#include "lens.h"
+#include "util.h"
+#include "network.h"
 
 const char *argp_program_version =
 "layeract 0.1";
