@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <lens.h>
-#include "util.h"
-#include <network.h>
-#include "object.h"
-#include <tcl.h>
 #include <argp.h>
+#include <tcl.h>
+#include "lens.h"
+#include "util.h"
+#include "network.h"
+#include "object.h"
 
 const char *argp_program_version =
 "netacc 0.1";
