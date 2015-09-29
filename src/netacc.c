@@ -3,7 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <argp.h>
-#include <tcl.h>
+#include "tcl.h"
 #include "lens.h"
 #include "util.h"
 #include "network.h"
