@@ -6,6 +6,7 @@ const char *argp_program_bug_address = "<cox.crc@gmail.com>";
 struct arguments
 {
   int index;
+  int rank;
   int verbose;
   int tick;
   char *args[4];
@@ -18,9 +19,9 @@ struct arguments
 static struct argp_option options[] =
 {
   {"index", 'i', 0, 0, "Prepend example number to each row of output."},
+  {"rank", 'r', 0, 0, "Output how many alternatives were closer to target than output pattern."},
   {"verbose", 'v', 0, 0, "Print input and counts to stderr."},
   {"tick", 't', "NUMBER", 0, "Report activations at a particular tick"},
-  {"hastarget", 'T', 0, 0, "Report activations at a particular tick"},
   {0}
 };
 
@@ -38,6 +39,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     {
     case 'i':
       arguments->index = 1;
+      break;
+    case 'r':
+      arguments->rank = 1;
       break;
     case 'v':
       arguments->verbose = 1;
@@ -76,7 +80,7 @@ static char args_doc[] = "NETWORK LAYER EXAMPLES WEIGHTS";
   Program documentation.
 */
 static char doc[] =
-"layeract -- A program to report the activation over a layer of a Lens neural network. \vOne of the LensUtilities.";
+"netacc -- A program to determine whether each example's output pattern is closer to it's target than anything else.";
 
 /*
    The ARGP structure itself.
